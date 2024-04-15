@@ -2,6 +2,7 @@ import os
 import shutil
 from typing import Tuple
 
+from torchvision.transforms import Compose
 import torchvision.datasets as datasets
 
 FILES = (
@@ -13,7 +14,7 @@ FILES = (
 
 DATA_PATH = "./data/MNIST/raw"
 
-def download() -> Tuple[datasets.VisionDataset, datasets.VisionDataset]:
+def download(transform: Compose = None) -> Tuple[datasets.MNIST, datasets.MNIST]:
   need_to_download = False
 
   if not os.path.exists(DATA_PATH):
@@ -27,12 +28,12 @@ def download() -> Tuple[datasets.VisionDataset, datasets.VisionDataset]:
   if need_to_download:
     shutil.rmtree(DATA_PATH)
 
-  mnist_train = download_mnist(train=True, download=need_to_download)
-  mnist_test = download_mnist(train=False, download=need_to_download)
+  mnist_train = download_mnist(train=True, download=need_to_download, transform=transform)
+  mnist_test = download_mnist(train=False, download=need_to_download, transform=transform)
 
   return mnist_train, mnist_test
 
 
-def download_mnist(train: bool, download: bool) -> datasets.VisionDataset:
-  mnist_set = datasets.MNIST(root='./data', train=train, download=download, transform=None)
+def download_mnist(train: bool, download: bool, transform: Compose = None) -> datasets.MNIST:
+  mnist_set = datasets.MNIST(root='./data', train=train, download=download, transform=transform)
   return mnist_set
