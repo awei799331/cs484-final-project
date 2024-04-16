@@ -35,5 +35,10 @@ def download(transform: Compose = None) -> Tuple[datasets.MNIST, datasets.MNIST]
 
 
 def download_mnist(train: bool, download: bool, transform: Compose = None) -> datasets.MNIST:
-  mnist_set = datasets.MNIST(root='./data', train=train, download=download, transform=transform)
+  mnist_set = datasets.MNIST(
+    root='./data',
+    train=train,
+    download=download,
+    transform=transform,
+  )
   return mnist_set

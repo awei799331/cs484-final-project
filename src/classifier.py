@@ -1,44 +1,41 @@
 from typing import List
 
 import numpy as np
-from sklearn import mixture
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 import torch.utils.data
 
 
-class MyGaussianMixture(object):
-  def __init__(self):
-    self.mixture = mixture.GaussianMixture(n_components=10, warm_start=True)
-    self.datapoints = None
+class ClassifierModel(nn.Module):
+  def __init__(self, device: torch.device, loss_function=None):
+    super(ClassifierModel, self).__init__()
+    self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1)
+    self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1)
+    self.lin1 = nn.Linear(9216, 128)
+    self.lin2 = nn.Linear(128, 10)
 
-  def clear(self):
-    self.datapoints = None
+    self.device = device
+    self.loss_function = loss_function
 
-  def fit(self, data: torch.Tensor):
-    points = data.cpu().detach().numpy()
-    if self.datapoints is None:
-      self.datapoints = points
-    else:
-      self.datapoints = np.append(self.datapoints, points, axis=0)
-    
-    self.mixture.fit(self.datapoints)
+  def forward(self, x, gts=None):
+    y = self.conv1(x)
+    y = F.relu(y)
+    y = self.conv2(y)
+    y = F.relu(y)
+    y = F.max_pool2d(y, 2)
+    y = torch.flatten(y, 1)
+    y = self.lin1(y)
+    y = F.relu(y)
+    y = self.lin2(y)
 
-  def predict_one(self, point: torch.Tensor):
-    return self.mixture.predict_proba(point.cpu().detach().numpy()[np.newaxis, :])
+    if self.training:
+      loss = self.loss_function(y, gts)
+      return loss
+    return y
 
-  def predict_many(self, points: torch.Tensor):
-    return self.mixture.predict_proba(points.cpu().detach().numpy())
 
-
-def get_optimizer(net: nn.Module, lr: float):
-    optimizer = optim.Adam(net.parameters(), lr=lr)
-    return optimizer
-  
-  
-def train_model(
+def train_classifier(
     model: nn.Module,
     device: torch.device,
     train_loader: torch.utils.data.DataLoader,
@@ -63,8 +60,7 @@ def train_model(
 
   return loss
 
-
-def validate_model(
+def validate_classifier(
     model: nn.Module,
     device: torch.device,
     val_loader: torch.utils.data.DataLoader
