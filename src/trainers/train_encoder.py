@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 
-def __main__():
+def __train_encoder__():
 
   device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
   print(device)
@@ -35,10 +35,6 @@ def __main__():
 
 
   train_loader = DataLoader(mnist_train, batch_size=TRAIN_BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True)
-  val_loader = DataLoader(mnist_test, batch_size=1, num_workers=NUM_WORKERS, shuffle=False)
-
-  my_gmm = MyGaussianMixture()
-  my_gmm.clear()
 
   mse_loss = nn.MSELoss()
   mse_loss = mse_loss.to(device)
@@ -50,7 +46,7 @@ def __main__():
 
   loss_graph = []
 
-  final_loss = train_encoder(encoder_model, device, train_loader, sgd_optimizer, loss_graph)
+  final_loss = train_encoder(encoder_model, device, train_loader, sgd_optimizer, loss_graph, print_losses=False, epochs=10)
 
   print(f"Completed training! Final loss: {final_loss.item()}\nRunning validation...")
 
@@ -62,30 +58,6 @@ def __main__():
   plt.title("Training Loss Over Batch Number")
   plt.show()
 
-  save_first_n = 10
-  val_loss, input_images, output_images = validate_encoder(encoder_model, device, val_loader, save_first_n)
-
-  print(f"Validation loss: {val_loss}")
-
-  plt.clf()
-  plt.cla()
-  fig, axs = plt.subplots(3, save_first_n)
-  fig.set_figheight(10)
-  fig.set_figwidth(50)
-
-  for i in range(10):
-    diff = (input_images[i].permute(1, 2, 0) - output_images[i].permute(1, 2, 0)).square()
-    axs[0, i].imshow(input_images[i].permute(1, 2, 0), cmap="Grays")
-    axs[0, i].set_title("Original")
-    axs[0, i].axis("off")
-    axs[1, i].imshow(output_images[i].permute(1, 2, 0), cmap="Grays")
-    axs[1, i].set_title("Decoded")
-    axs[1, i].axis("off")
-    axs[2, i].imshow(diff, cmap="Grays", vmin=0, vmax=1)
-    axs[2, i].set_title("Squared Diff")
-    axs[2, i].axis("off")
-  fig.show()
-
   save_model = input("Save model? [y/n]... ")
   if save_model.lower() == "y":
     print("Saving model...")
@@ -94,5 +66,5 @@ def __main__():
     print("Model not saved. Exiting.")
 
 
-if __name__ == "__main__":
-  __main__()
+if __name__ == "__train_encoder__":
+  train_encoder()

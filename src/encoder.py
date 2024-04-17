@@ -9,12 +9,12 @@ import torch.utils.data
 class EncoderModel(nn.Module):
   def __init__(self, device: torch.device, loss_function=None):
     super(EncoderModel, self).__init__()
-    self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
-    self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-    self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-    self.convt3 = nn.ConvTranspose2d(128, 64, kernel_size=3, stride=1, padding=1)
-    self.convt2 = nn.ConvTranspose2d(64, 32, kernel_size=3, stride=1, padding=1)
-    self.convt1 = nn.ConvTranspose2d(32, 1, kernel_size=3, stride=1, padding=1)
+    self.conv1 = nn.Conv2d(1, 16, kernel_size=3, stride=2, padding=1)
+    self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+    self.conv3 = nn.Conv2d(32, 64, kernel_size=5, stride=2, padding=0)
+    self.convt3 = nn.ConvTranspose2d(64, 32, kernel_size=5, stride=2, padding=0, output_padding=0)
+    self.convt2 = nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1)
+    self.convt1 = nn.ConvTranspose2d(16, 1, kernel_size=3, stride=2, padding=1, output_padding=1)
 
     self.device = device
     self.loss_function = loss_function
@@ -51,24 +51,28 @@ def train_encoder(
     model: nn.Module,
     device: torch.device,
     train_loader: torch.utils.data.DataLoader,
-    optimizer: torch.optim.SGD,
+    optimizer: torch.optim.Optimizer,
     loss_graph: List[float],
-    print_losses: bool = True
+    print_losses: bool = False,
+    epochs: int = 1,
 ):
   model.train()
 
-  for batch_id, (data, target) in enumerate(train_loader):
-    data = data.to(device)
-    target = target.to(device)
+  for i in range(epochs):
+    for batch_id, (data, target) in enumerate(train_loader):
+      data = data.to(device)
+      target = target.to(device)
 
-    optimizer.zero_grad()
-    loss = model(data, target)
-    loss_graph.append(loss.item())
-    loss.backward()
-    optimizer.step()
+      optimizer.zero_grad()
+      loss = model(data, target)
+      loss_graph.append(loss.item())
+      loss.backward()
+      optimizer.step()
 
-    if print_losses:
-      print(loss_graph[-1])
+      if print_losses:
+        print(loss_graph[-1])
+
+    print(f"Loss at epoch {i}: {loss_graph[-1]}")
 
   return loss
 
@@ -89,7 +93,6 @@ def validate_encoder(
   with torch.no_grad():
       for batch_id, (data, target) in enumerate(val_loader):
         data = data.to(device)
-        # target = target.to(device)
 
         encode_decode = model(data)
         val_loss += nn.MSELoss()(encode_decode, data).item()
