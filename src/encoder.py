@@ -91,15 +91,15 @@ def validate_encoder(
   model.train(False)
 
   with torch.no_grad():
-      for batch_id, (data, target) in enumerate(val_loader):
-        data = data.to(device)
+    for batch_id, (data, target) in enumerate(val_loader):
+      data = data.to(device)
 
-        encode_decode = model(data)
-        val_loss += nn.MSELoss()(encode_decode, data).item()
+      encode_decode = model(data)
+      val_loss += nn.MSELoss()(encode_decode, data).item()
 
-        if batch_id < save_first_n:
-          input_data.extend(data.cpu().detach())
-          output_data.extend(encode_decode.cpu().detach())
+      if batch_id < save_first_n:
+        input_data.extend(data.cpu().detach())
+        output_data.extend(encode_decode.cpu().detach())
 
   val_loss /= len(val_loader.dataset)
   return val_loss, input_data, output_data

@@ -1,4 +1,5 @@
 from src.classifier import *
+from src.loader import LabeledUnlabeledMNIST
 from src.model import *
 from src.utils import *
 
@@ -6,23 +7,17 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
 import torch
 from torch.utils.data import DataLoader
-from torchvision import transforms
 
 
-def __validate_classifier__(nn_model = None):
+def __validate_classifier__(nn_model = None, percent_tag: str = ""):
 
   device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
   print(device)
 
-  """
-  Checks the filepath "./data/MNIST/raw" for the dataset. If not found, downloads the dataset
-  """
-  transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,))
-  ])
+  set_seed()
 
-  mnist_train, mnist_test = download(transform)
+  dataset_handler = LabeledUnlabeledMNIST()
+  mnist_test = dataset_handler.mnist_test
 
   # If you are NOT using Windows, set NUM_WORKERS to anything you want, e.g. NUM_WORKERS = 4,
   # but Windows has issues with multi-process dataloaders, so NUM_WORKERS must be 0 for Windows.
@@ -34,7 +29,7 @@ def __validate_classifier__(nn_model = None):
   if not nn_model:
     print("Loading classifier model from save...")
     classifier_model = ClassifierModel(device, None)
-    classifier_model.load_state_dict(torch.load("./saves/classifier_model.pth"))
+    classifier_model.load_state_dict(torch.load(f"./saves/classifier_model_{percent_tag}.pth"))
   else:
     classifier_model = nn_model
 
@@ -47,7 +42,7 @@ def __validate_classifier__(nn_model = None):
 
   disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=[i for i in range(10)])
   disp.plot()
-  plt.title("Confusion Matrix")
+  plt.title("Classifer Model Confusion Matrix")
   plt.show()
 
 

@@ -1,39 +1,34 @@
 
 from src.encoder import *
+from src.loader import *
 from src.model import *
 from src.utils import *
 
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
-from torchvision import transforms
 
 
-def __validate_encoder__(nn_model=None):
+def __validate_encoder__(nn_model=None, percent_tag: str = ""):
 
   device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
   print(device)
 
-  """
-  Checks the filepath "./data/MNIST/raw" for the dataset. If not found, downloads the dataset
-  """
-  transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,))
-  ])
+  set_seed()
 
-  mnist_train, mnist_test = download(transform)
+  dataset_handler = LabeledUnlabeledMNIST()
+  mnist_test = dataset_handler.mnist_test
 
   # If you are NOT using Windows, set NUM_WORKERS to anything you want, e.g. NUM_WORKERS = 4,
   # but Windows has issues with multi-process dataloaders, so NUM_WORKERS must be 0 for Windows.
   NUM_WORKERS = 0
 
-  val_loader = DataLoader(mnist_test, batch_size=1, num_workers=0, shuffle=True)
+  val_loader = DataLoader(mnist_test, batch_size=1, num_workers=NUM_WORKERS, shuffle=True)
 
   if not nn_model:
     print("Loading encoder model from save...")
     encoder_model = EncoderModel(device, None)
-    encoder_model.load_state_dict(torch.load("./saves/encoder_model.pth"))
+    encoder_model.load_state_dict(torch.load(f"./saves/encoder_model_{percent_tag}.pth"))
   else:
     encoder_model = nn_model
   
