@@ -25,8 +25,8 @@ def download(transform: Compose = None) -> Tuple[datasets.MNIST, datasets.MNIST]
       need_to_download = True
       break
 
-  if need_to_download:
-    shutil.rmtree(DATA_PATH)
+  # if need_to_download:
+  #   shutil.rmtree(DATA_PATH)
 
   mnist_train = download_mnist(train=True, download=need_to_download, transform=transform)
   mnist_test = download_mnist(train=False, download=need_to_download, transform=transform)
