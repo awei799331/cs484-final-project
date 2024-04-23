@@ -41,7 +41,7 @@ def main():
   labeled_percent = args.labeled_percent[0]
   labeled_percent_parsed = float(labeled_percent)
   assert(0 <= labeled_percent_parsed <= 1)
-  percent_tag = labeled_percent.split(".")[1]
+  percent_tag = "" if labeled_percent == "1" else labeled_percent.split(".")[1]
 
   epochs = args.epochs
   assert(epochs >= 1)
