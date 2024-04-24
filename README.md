@@ -4,6 +4,7 @@
 
 1. `python -m venv venv`
 2. `./venv/Scripts/activate`
+3. `mkdir ./saves`
 
 If you are using CUDA with an nVidia GPU: `pip install -r requirements.txt`
 
